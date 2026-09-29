@@ -1,0 +1,12 @@
+{
+  "name": "jarvis-mf-agency",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/functions": "^2.8.2",
+    "node-ical": "^0.20.1",
+    "tsdav": "^2.1.2",
+    "web-push": "^3.6.7"
+  }
+}

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jarvis">
+<meta name="theme-color" content="#071523">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Jarvis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --abisso:#071523; --scafo:#0E2438; --bordo:#1B3A55;
+  --reattore:#6FD8F5; --ghiaccio:#DDF2FA; --nebbia:#7C98AE; --allerta:#F2B84B;
+  --display:'Chakra Petch', 'Segoe UI', system-ui, sans-serif;
+  --testo:'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--abisso);color:var(--ghiaccio);font:16px/1.5 var(--testo);-webkit-text-size-adjust:100%}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--reattore);outline-offset:3px;border-radius:6px}
+
+header{position:relative;display:flex;flex-direction:column;align-items:center;padding:18px 20px 10px;flex-shrink:0}
+#impostazioni{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--nebbia)}
+#orb{width:112px;height:112px;border-radius:50%;display:grid;place-items:center}
+#orb svg{width:100%;height:100%;overflow:visible}
+.anello{transform-origin:60px 60px}
+#nucleo{transition:r .3s ease}
+body.pensa .a1{animation:gira 2.4s linear infinite}
+body.pensa .a2{animation:gira 3.6s linear infinite reverse}
+body.parla #alone{animation:pulsa 1.1s ease-in-out infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+@keyframes pulsa{50%{opacity:.9;r:44}}
+h1{font:600 22px/1 var(--display);letter-spacing:.06em;margin-top:10px}
+#stato{font-size:13px;color:var(--nebbia);margin-top:6px;min-height:20px;text-align:center}
+
+main{flex:1;overflow-y:auto;padding:12px 18px 18px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch}
+.msg{max-width:min(88%,620px);white-space:pre-wrap;word-wrap:break-word}
+.jarvis{align-self:flex-start;border-left:2px solid var(--reattore);padding:2px 0 2px 12px}
+.jarvis .titolo{font:500 13px/1.4 var(--display);color:var(--reattore);letter-spacing:.03em;margin-bottom:2px}
+.io{align-self:flex-end;background:var(--scafo);border:1px solid var(--bordo);border-radius:16px 16px 4px 16px;padding:9px 13px}
+.errore{align-self:center;color:var(--allerta);font-size:14px;text-align:center}
+.vuoto{margin:auto;text-align:center;color:var(--nebbia);max-width:30ch}
+
+form{display:flex;gap:10px;align-items:flex-end;padding:10px 14px 12px;border-top:1px solid var(--bordo);flex-shrink:0}
+textarea{flex:1;resize:none;max-height:140px;background:var(--scafo);color:var(--ghiaccio);border:1px solid var(--bordo);border-radius:20px;padding:10px 16px;font:16px/1.4 var(--testo)}
+textarea::placeholder{color:var(--nebbia)}
+#invia{width:44px;height:44px;border-radius:50%;background:var(--reattore);color:var(--abisso);display:grid;place-items:center;flex-shrink:0}
+#invia:disabled{opacity:.4}
+
+dialog{margin:auto;width:min(92vw,420px);background:var(--scafo);color:var(--ghiaccio);border:1px solid var(--bordo);border-radius:20px;padding:22px}
+dialog::backdrop{background:rgba(3,10,18,.75)}
+dialog h2{font:600 18px/1.2 var(--display);margin-bottom:14px}
+.riga{margin-top:16px}
+.riga label{display:block;font-size:14px;color:var(--nebbia);margin-bottom:6px}
+.riga input{width:100%;background:var(--abisso);color:var(--ghiaccio);border:1px solid var(--bordo);border-radius:12px;padding:11px 14px;font:16px var(--testo)}
+.btn{display:block;width:100%;padding:12px;border-radius:12px;border:1px solid var(--bordo);margin-top:10px;text-align:center}
+.btn.primario{background:var(--reattore);color:var(--abisso);border-color:var(--reattore);font-weight:500}
+.nota{font-size:13px;color:var(--nebbia);margin-top:8px}
+.switch{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <button id="impostazioni" aria-label="Impostazioni">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+  <button id="orb" aria-label="Riascolta l'ultimo messaggio">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <defs><radialGradient id="g"><stop offset="0" stop-color="#6FD8F5" stop-opacity=".55"/><stop offset="1" stop-color="#6FD8F5" stop-opacity="0"/></radialGradient></defs>
+      <circle id="alone" cx="60" cy="60" r="40" fill="url(#g)" opacity=".6"/>
+      <g class="anello a1"><circle cx="60" cy="60" r="54" fill="none" stroke="#6FD8F5" stroke-width="1.5" stroke-dasharray="60 24"/></g>
+      <g class="anello a2"><circle cx="60" cy="60" r="42" fill="none" stroke="#6FD8F5" stroke-width="4" stroke-dasharray="6 5"/></g>
+      <circle cx="60" cy="60" r="30" fill="none" stroke="#DDF2FA" stroke-width="1.2"/>
+      <circle id="nucleo" cx="60" cy="60" r="12" fill="#DDF2FA"/>
+    </svg>
+  </button>
+  <h1>JARVIS</h1>
+  <div id="stato" aria-live="polite"></div>
+</header>
+
+<main id="chat" aria-live="polite"></main>
+
+<form id="form">
+  <textarea id="input" rows="1" placeholder="Parli pure, Sir" aria-label="Messaggio per Jarvis"></textarea>
+  <button id="invia" type="submit" aria-label="Invia">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+</form>
+
+<dialog id="dlg">
+  <h2>Impostazioni</h2>
+  <div class="riga">
+    <label for="pin">PIN di Jarvis</label>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off">
+  </div>
+  <button class="btn primario" id="salvaPin">Salva PIN</button>
+  <button class="btn" id="notifiche">Attiva notifiche</button>
+  <p class="nota" id="notaNotifiche"></p>
+  <div class="switch"><span>Risposte a voce</span><input type="checkbox" id="voce" aria-label="Risposte a voce"></div>
+  <button class="btn" id="svuota">Svuota conversazione</button>
+  <button class="btn" id="chiudi">Chiudi</button>
+</dialog>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const LS = {
+  get: (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+let pin = LS.get('jv_pin', '');
+let storia = LS.get('jv_storia', []);
+let ultimaInbox = LS.get('jv_inbox', 0);
+let voce = LS.get('jv_voce', true);
+
+const chat = $('#chat'), input = $('#input'), invia = $('#invia'), stato = $('#stato');
+
+function render() {
+  chat.innerHTML = '';
+  if (!storia.length) {
+    chat.innerHTML = '<p class="vuoto">Mi chieda il fatturato, le chiamate di oggi o l\'agenda. Posso anche aggiungere contatti.</p>';
+    return;
+  }
+  for (const m of storia) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + (m.da === 'io' ? 'io' : m.da === 'errore' ? 'errore' : 'jarvis');
+    if (m.titolo) { const t = document.createElement('div'); t.className = 'titolo'; t.textContent = m.titolo; el.appendChild(t); }
+    el.appendChild(document.createTextNode(m.testo));
+    chat.appendChild(el);
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+function aggiungi(m) {
+  storia.push({ ...m, t: Date.now() });
+  storia = storia.slice(-60);
+  LS.set('jv_storia', storia.filter((x) => x.da !== 'errore'));
+  render();
+}
+const modo = (m) => { document.body.classList.remove('pensa', 'parla'); if (m) document.body.classList.add(m); };
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', 'x-jarvis-pin': pin, ...(opts.headers || {}) } });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) { apriImpostazioni(); throw new Error('PIN mancante o errato.'); }
+  if (!res.ok) throw new Error(data.errore || 'Errore ' + res.status);
+  return data;
+}
+
+// Voce
+let vocePronta = false;
+function sbloccaVoce() {
+  if (vocePronta || !('speechSynthesis' in window)) return;
+  speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+  vocePronta = true;
+}
+function parla(testo) {
+  if (!voce || !('speechSynthesis' in window) || !testo) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(testo);
+  const voci = speechSynthesis.getVoices().filter((v) => v.lang && v.lang.startsWith('it'));
+  u.voice = voci.find((v) => /luca|diego|cosimo/i.test(v.name)) || voci[0] || null;
+  u.lang = 'it-IT'; u.rate = 1.02; u.pitch = 0.9;
+  u.onstart = () => modo('parla');
+  u.onend = u.onerror = () => { modo(); aggiornaStato(); };
+  speechSynthesis.speak(u);
+}
+$('#orb').addEventListener('click', () => {
+  sbloccaVoce();
+  const ultimo = [...storia].reverse().find((m) => m.da === 'jarvis');
+  if (speechSynthesis.speaking) { speechSynthesis.cancel(); modo(); return; }
+  if (ultimo) parla(ultimo.testo);
+});
+
+function aggiornaStato(t) {
+  if (t) { stato.textContent = t; return; }
+  const h = new Date().getHours() * 60 + new Date().getMinutes();
+  stato.textContent = h >= 480 && h < 820 ? 'In silenzio fino alle 13:40' : 'A sua disposizione, Sir';
+}
+
+// Messaggi
+input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = input.scrollHeight + 'px'; });
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); $('#form').requestSubmit(); }
+});
+$('#form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const testo = input.value.trim();
+  if (!testo) return;
+  sbloccaVoce();
+  input.value = ''; input.style.height = 'auto';
+  aggiungi({ da: 'io', testo });
+  invia.disabled = true; modo('pensa'); aggiornaStato('Ci penso, Sir');
+  try {
+    const { testo: risposta } = await api('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ storia: storia.filter((m) => m.da !== 'errore').map(({ da, testo }) => ({ da, testo })) }),
+    });
+    modo(); aggiornaStato();
+    aggiungi({ da: 'jarvis', testo: risposta });
+    parla(risposta);
+  } catch (err) {
+    modo(); aggiornaStato();
+    aggiungi({ da: 'errore', testo: err.message });
+  } finally {
+    invia.disabled = false;
+  }
+});
+
+// Notifiche arrivate mentre l'app era chiusa
+async function leggiInbox() {
+  if (!pin) return;
+  try {
+    const nuovi = await api('/api/inbox?dopo=' + ultimaInbox);
+    for (const m of nuovi) {
+      storia.push({ da: 'jarvis', titolo: m.titolo, testo: m.testo, t: m.t });
+      ultimaInbox = Math.max(ultimaInbox, m.t);
+    }
+    if (nuovi.length) {
+      storia = storia.slice(-60);
+      LS.set('jv_storia', storia); LS.set('jv_inbox', ultimaInbox); render();
+      aggiornaStato('Tocchi il reattore per ascoltare');
+    }
+  } catch {}
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) leggiInbox(); });
+navigator.serviceWorker?.addEventListener('message', (e) => { if (e.data?.tipo === 'inbox') leggiInbox(); });
+
+// Impostazioni
+const dlg = $('#dlg');
+function apriImpostazioni() {
+  $('#pin').value = pin; $('#voce').checked = voce;
+  const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  $('#notaNotifiche').textContent = !('PushManager' in window) && !standalone
+    ? 'Su iPhone: prima Condividi, poi Aggiungi alla schermata Home, e apra Jarvis da lì.'
+    : window.Notification?.permission === 'granted' ? 'Notifiche attive su questo dispositivo.' : '';
+  if (!dlg.open) dlg.showModal();
+}
+$('#impostazioni').addEventListener('click', apriImpostazioni);
+$('#chiudi').addEventListener('click', () => dlg.close());
+$('#salvaPin').addEventListener('click', () => { pin = $('#pin').value.trim(); LS.set('jv_pin', pin); dlg.close(); leggiInbox(); });
+$('#voce').addEventListener('change', (e) => { voce = e.target.checked; LS.set('jv_voce', voce); });
+$('#svuota').addEventListener('click', () => { storia = []; LS.set('jv_storia', []); render(); dlg.close(); });
+
+const b64 = (s) => { const p = '='.repeat((4 - (s.length % 4)) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, (c) => c.charCodeAt(0)); };
+$('#notifiche').addEventListener('click', async () => {
+  const nota = $('#notaNotifiche');
+  try {
+    if (!('PushManager' in window)) throw new Error('Su iPhone: prima Condividi, poi Aggiungi alla schermata Home, e apra Jarvis da lì.');
+    if (!pin) throw new Error('Prima salvi il PIN.');
+    const permesso = await Notification.requestPermission();
+    if (permesso !== 'granted') throw new Error('Permesso negato. Lo riattivi da Impostazioni, Notifiche, Jarvis.');
+    const reg = await navigator.serviceWorker.ready;
+    const { chiave } = await (await fetch('/api/subscribe')).json();
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(chiave) });
+    await api('/api/subscribe', { method: 'POST', body: JSON.stringify(sub) });
+    nota.textContent = 'Fatto. Tra pochi secondi arriva una notifica di prova.';
+  } catch (err) { nota.textContent = err.message; }
+});
+
+// Avvio
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+render(); aggiornaStato();
+if (!pin) apriImpostazioni(); else leggiInbox();
+</script>
+</body>
+</html>
